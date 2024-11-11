@@ -62,7 +62,7 @@ const getAllShop = async (req, res) => {
     // menggunakan cara 1
     const { shopName, adminEmail, productName, stock } = req.query;
 
-    const limit = req.query.limit ? parseInt(req.query.limit) : false;
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
     const page = req.query.page ? parseInt(req.query.page) : 1;
 
     const condition = {};
