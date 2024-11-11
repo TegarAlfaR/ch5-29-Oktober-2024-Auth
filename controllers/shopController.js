@@ -60,7 +60,7 @@ const getAllShop = async (req, res) => {
     // cara 2. dinamis filter
 
     // menggunakan cara 1
-    const { shopName, adminEmail, productName, stock } = req.query;
+    const { shopName, adminEmail, productName, stock, price } = req.query;
 
     const limit = req.query.limit ? parseInt(req.query.limit) : 10;
     const page = req.query.page ? parseInt(req.query.page) : 1;
@@ -71,6 +71,7 @@ const getAllShop = async (req, res) => {
     const productCondition = {};
     if (productName) productCondition.name = { [Op.iLike]: `%${productName}%` };
     if (stock) productCondition.stock = stock;
+    if (price) productCondition.price = price;
 
     const start = 0 + (page - 1) * limit;
     const end = page * limit;
