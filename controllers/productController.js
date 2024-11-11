@@ -1,5 +1,5 @@
 const { Products, Shops } = require("../models");
-const {Op} = require("sequelize")
+const { Op } = require("sequelize");
 
 const createProduct = async (req, res) => {
   const { name, stock, price, shopId } = req.body;
@@ -50,23 +50,21 @@ const createProduct = async (req, res) => {
 
 const getAllProduct = async (req, res) => {
   try {
+    const { productName, stock, price, shopName } = req.query;
 
-    const { productName, stock, price, shopName } = req.query
-
-    const limit = req.query.limit ? parseInt(req.query.limit) : 10; 
+    const limit = req.query.limit ? parseInt(req.query.limit) : false;
     const page = req.query.page ? parseInt(req.query.page) : 1;
 
-    const productCondition = {}
-    if(productName) productCondition.name =  { [Op.iLike]: `%${productName}%` }
-    if(stock) productCondition.stock = stock
-    if(price) productCondition.price = price
+    const productCondition = {};
+    if (productName) productCondition.name = { [Op.iLike]: `%${productName}%` };
+    if (stock) productCondition.stock = stock;
+    if (price) productCondition.price = price;
 
-    const shopCondition = {}
-    if(shopName) shopCondition.name = { [Op.iLike]: `%${shopName}%` }
+    const shopCondition = {};
+    if (shopName) shopCondition.name = { [Op.iLike]: `%${shopName}%` };
 
-    const start = 0 + (page - 1) * limit
-    const end = page * limit
-
+    const start = 0 + (page - 1) * limit;
+    const end = page * limit;
 
     const products = await Products.findAndCountAll({
       include: [
@@ -74,49 +72,49 @@ const getAllProduct = async (req, res) => {
           model: Shops,
           as: "shop",
           attributes: ["name"],
-          where: shopCondition
+          where: shopCondition,
         },
       ],
       attributes: ["id", "name", "images", "stock", "price", "shopId"],
       where: productCondition,
       limit: limit ? limit : undefined,
-      offset: start ? start : undefined
+      offset: start ? start : undefined,
     });
 
-    const countProducts = products.count
-    const pagination = {}
-    pagination.totalRow = products.count
+    const countProducts = products.count;
+    const pagination = {};
+    pagination.totalRow = products.count;
     pagination.totalPage = limit ? Math.ceil(countProducts / limit) : 1;
 
-    console.log(page)
-    console.log(pagination.totalPage)
+    console.log(page);
+    console.log(pagination.totalPage);
 
-    if(page > pagination.totalPage){
+    if (page > pagination.totalPage) {
       return res.status(404).json({
         status: "Failed",
         message: "Page not found",
         isSuccess: false,
-        data: null
+        data: null,
       });
     }
 
-    if(end < countProducts){
+    if (end < countProducts) {
       pagination.current = {
         page,
-        limit
-      }
+        limit,
+      };
     }
-    if(end < countProducts && end != 0){
+    if (end < countProducts && end != 0) {
       pagination.next = {
-        page : page +1,
-        limit
-      }
+        page: page + 1,
+        limit,
+      };
     }
-    if(start > 0){
+    if (start > 0) {
       pagination.prev = {
-        page : page -1,
-        limit
-      }
+        page: page - 1,
+        limit,
+      };
     }
 
     res.status(200).json({
@@ -125,7 +123,7 @@ const getAllProduct = async (req, res) => {
       isSuccess: true,
       pagination,
       data: {
-        products: products.rows
+        products: products.rows,
       },
     });
   } catch (error) {
@@ -148,7 +146,6 @@ const getAllProduct = async (req, res) => {
     });
   }
 };
-
 
 const getProductById = async (req, res) => {
   const id = req.params.id;
