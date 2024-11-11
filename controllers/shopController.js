@@ -1,8 +1,8 @@
 const { Shops, Products, Users } = require("../models");
-const {Op} = require("sequelize")
+const { Op } = require("sequelize");
 
 const createShop = async (req, res) => {
-  const { name, adminEmail} = req.body;
+  const { name, adminEmail } = req.body;
 
   try {
     const newShop = await Shops.create({
@@ -29,14 +29,14 @@ const createShop = async (req, res) => {
         isSuccess: false,
         data: null,
       });
-    }else if(error.name == "SequelizeDatabaseError"){
+    } else if (error.name == "SequelizeDatabaseError") {
       return res.status(400).json({
         status: "Failed",
         message: error.message || "Database error",
         isSuccess: false,
         data: null,
       });
-    }else{
+    } else {
       res.status(500).json({
         status: "Failed",
         message: "An unexpected error occured",
@@ -58,75 +58,74 @@ const getAllShop = async (req, res) => {
   try {
     // cara 1. jaga request query nya agar tidak kemana mana
     // cara 2. dinamis filter
-    
-    // menggunakan cara 1
-    const { shopName, adminEmail, productName, stock } = req.query
 
-    const limit = req.query.limit ? parseInt(req.query.limit) : false; 
+    // menggunakan cara 1
+    const { shopName, adminEmail, productName, stock } = req.query;
+
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10;
     const page = req.query.page ? parseInt(req.query.page) : 1;
 
     const condition = {};
-    if(shopName) condition.name = { [Op.iLike]: `%${shopName}%` }
+    if (shopName) condition.name = { [Op.iLike]: `%${shopName}%` };
 
-    const productCondition= {}
-    if(productName) productCondition.name = { [Op.iLike]: `%${productName}%` }
-    if(stock) productCondition.stock = stock 
+    const productCondition = {};
+    if (productName) productCondition.name = { [Op.iLike]: `%${productName}%` };
+    if (stock) productCondition.stock = stock;
 
-    const start = 0 + (page - 1) * limit
-    const end = page * limit
+    const start = 0 + (page - 1) * limit;
+    const end = page * limit;
 
     const shops = await Shops.findAndCountAll({
-      include: 
-      [
+      include: [
         {
           model: Products,
           as: "products",
           attributes: ["name", "images", "stock", "price"],
-          where: productCondition
+          where: productCondition,
         },
         {
           model: Users,
           as: "user",
-          attributes: ["name"]
+          attributes: ["name"],
         },
       ],
       attributes: ["name", "adminEmail"],
       where: condition,
       limit: limit ? limit : undefined,
-      offset: start ? start : undefined
+      offset: start ? start : undefined,
     });
 
-    const countShops = shops.count
-    const pagination = {}
-    pagination.totalRow = shops.count
+    const countShops = shops.count;
+    const pagination = {};
+    pagination.totalRow = shops.count;
     pagination.totalPage = limit ? Math.ceil(countShops / limit) : 1;
-    
-    if(page > pagination.totalPage){
+
+    if (page > pagination.totalPage) {
       return res.status(404).json({
         status: "Failed",
         message: "Page not found",
         isSuccess: false,
-        data: null
+        data: null,
       });
     }
 
-    if(end < countShops){
+    if (end < countShops) {
       pagination.current = {
         page,
-        limit
-      }
+        limit,
+      };
     }
-    if(end < countShops && end != 0){
+    if (end < countShops && end != 0) {
       pagination.next = {
-        page : page +1,
-        limit
-      }
+        page: page + 1,
+        limit,
+      };
     }
-    if(start > 0){
+    if (start > 0) {
       pagination.prev = {
-        page : page -1,
-        limit
-      }
+        page: page - 1,
+        limit,
+      };
     }
 
     res.status(200).json({
@@ -135,7 +134,7 @@ const getAllShop = async (req, res) => {
       isSuccess: true,
       pagination,
       data: {
-        shops: shops.rows
+        shops: shops.rows,
       },
     });
   } catch (error) {

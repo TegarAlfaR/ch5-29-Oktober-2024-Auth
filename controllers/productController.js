@@ -53,7 +53,7 @@ const getAllProduct = async (req, res) => {
 
     const { productName, stock, price, shopName } = req.query
 
-    const limit = req.query.limit ? parseInt(req.query.limit) : false; 
+    const limit = req.query.limit ? parseInt(req.query.limit) : 10; 
     const page = req.query.page ? parseInt(req.query.page) : 1;
 
     const productCondition = {}
